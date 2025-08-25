@@ -1,5 +1,5 @@
 # `<canvas>` experiments
 
-- https://s--i.github.io/experiments/cube
-- https://s--i.github.io/experiments/ledclock
-- https://s--i.github.io/experiments/starfield
+- [Projected 3D rotating cube](https://s--i.github.io/experiments/cube)
+- [LED broadcast style clock](https://s--i.github.io/experiments/ledclock)
+- [`<canvas>` version of *starfield.scr*](https://s--i.github.io/experiments/starfield)
