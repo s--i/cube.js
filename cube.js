@@ -1,6 +1,5 @@
 const canvas = document.getElementById("container");
 const ctx = canvas.getContext("2d");
-ctx.lineCap = "round";
 
 let width = window.innerWidth;
 let height = window.innerHeight;
@@ -41,64 +40,63 @@ const vertices = [
 
 const size = 64;
 const distance = size * 8;
+const lineWidth = 4;
 const speed = 0.4;
 
-const cornerX = new Array(vertices.length);
-const cornerY = new Array(vertices.length);
-const halfPi = Math.PI / 180;
+const degreesToRadians = Math.PI / 180;
+const projectedVertices = vertices.map(() => [0, 0]);
 const scaledVertices = vertices.map(v => v.map(c => c * size));
 
 function rotate() {
-    let roll = 1 * speed * halfPi;
-    let pitch = 3 * speed * halfPi;
-    let yaw = 2 * speed * halfPi;
+    const roll = 1 * degreesToRadians * speed;
+    const pitch = 3 * degreesToRadians * speed;
+    const yaw = 2 * degreesToRadians * speed;
 
-    scaledVertices.forEach((v, i) => {
-        let x = v[0];
-        let y = v[1];
-        let z = v[2];
+    const sinRoll = Math.sin(roll);
+    const cosRoll = Math.cos(roll);
+    const sinPitch = Math.sin(pitch);
+    const cosPitch = Math.cos(pitch);
+    const sinYaw = Math.sin(yaw);
+    const cosYaw = Math.cos(yaw);
+
+    for (let i = 0; i < scaledVertices.length; i++) {
+        const [x, y, z] = scaledVertices[i];
 
         // Pitch (X-axis)
-        let rY = y * Math.cos(pitch) - z * Math.sin(pitch);
-        let rZ = y * Math.sin(pitch) + z * Math.cos(pitch);
+        let rY = y * cosPitch - z * sinPitch;
+        let rZ = y * sinPitch + z * cosPitch;
 
         // Yaw (Y-axis)
-        let rX = rZ * Math.sin(yaw) + x * Math.cos(yaw);
-        rZ = rZ * Math.cos(yaw) - x * Math.sin(yaw);
+        let rX = rZ * sinYaw + x * cosYaw;
+        rZ = rZ * cosYaw - x * sinYaw;
 
         // Roll (Z-axis)
-        const tX = rX;
-        rX = rY * Math.sin(roll) + tX * Math.cos(roll);
-        rY = rY * Math.cos(roll) - tX * Math.sin(roll);
+        const prevX = rX;
+        rX = rY * sinRoll + prevX * cosRoll;
+        rY = rY * cosRoll - prevX * sinRoll;
 
-        v[0] = rX;
-        v[1] = rY;
-        v[2] = rZ;
+        scaledVertices[i] = [rX, rY, rZ];
 
-        // corner projection
-        let zed = distance / (distance + rZ);
-        cornerX[i] = rX * zed;
-        cornerY[i] = rY * zed;
-    });
+        const scale = distance / (distance + rZ);
+        projectedVertices[i] = [rX * scale, rY * scale];
+    }
+
+    const centerX = canvas.width / 2;
+    const centerY = canvas.height / 2;
 
     ctx.clearRect(0, 0, canvas.width, canvas.height);
     ctx.lineCap = "round";
-    ctx.lineWidth = 2;
+    ctx.lineWidth = lineWidth;
 
-    edges.forEach(e => {
-        const start = e[0]
-        const end = e[1]
+    ctx.beginPath();
+    for (const [startVertex, endVertex] of edges) {
+        const [startX, startY] = projectedVertices[startVertex];
+        const [endX, endY] = projectedVertices[endVertex];
 
-        const sX = cornerX[start] + canvas.width / 2;
-        const sY = cornerY[start] + canvas.height / 2;
-        const eX = cornerX[end] + canvas.width / 2;
-        const eY = cornerY[end] + canvas.height / 2;
-
-        ctx.beginPath();
-        ctx.moveTo(sX, sY);
-        ctx.lineTo(eX, eY);
-        ctx.stroke();
-    });
+        ctx.moveTo(startX + centerX, startY + centerY);
+        ctx.lineTo(endX + centerX, endY + centerY);
+    }
+    ctx.stroke();
 
     requestAnimationFrame(rotate);
 }
