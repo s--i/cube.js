@@ -1,0 +1,110 @@
+<html>
+<head>
+<title>Starfield</title>
+<script type="text/javascript" language="javascript">
+
+function star() {
+	this.x = Math.round(Math.random() * 256 - 128);
+	this.y = Math.round(Math.random() * 256 - 128);
+	this.z = Math.round(Math.random() * 128);
+	this.offScreen = 0;
+}
+
+function drawStar(star, starRef, x, y) {
+	var objectHandle = document.getElementById('s'+ star);
+	if(!objectHandle) {
+		document.write('<img src="img/star.gif" id="s' + star + '" class="i" alt="" />');
+		objectHandle = document.getElementById('s' + star);
+	}
+	updateStar(objectHandle, starRef, x, y);
+}
+function updateStar(objectHandle, starRef, x, y) {
+	var zed = 64 / (64.1 + starRef.z);
+	var starStyle = objectHandle.style;
+	starStyle.width = Math.ceil(Math.abs(zed)) + 'px';
+	starStyle.height = Math.ceil(Math.abs(zed)) + 'px';
+	var newX = Math.round((starRef.x * zed) + (x / 2));
+	var newY = Math.round((starRef.y * zed) + (y / 2));
+	starStyle.left = newX + 'px';
+	starStyle.top = newY + 'px';
+	if(starRef.z <= -63) {
+		starRef.offScreen = 1;
+	}
+}
+
+function drawi() {
+	if(self.innerHeight) {
+		var x = self.innerWidth;
+		var y = self.innerHeight;
+	}else if(document.documentElement && document.documentElement.clientHeight) {
+		var x = document.documentElement.clientWidth;
+		var y = document.documentElement.clientHeight;
+	}else if(document.body) {
+		var x = document.body.clientWidth;
+		var y = document.body.clientHeight;
+	}
+	var i = 31;
+	do {
+		stars[i].z -= 4;
+		if(stars[i].offScreen) {
+			stars[i] = new star();
+		}
+		drawStar(i, stars[i], x, y);
+	}while(--i);
+	if(run) {
+		setTimeout("drawi()", 40);
+	}
+}
+
+function stop() {
+	run = 0;
+}
+
+</script>
+
+<style type="text/css">
+body {
+	margin:0px;
+	overflow:hidden;
+	background-color:#000;
+	font:76% normal verdana,arial,tahoma;
+}
+.d {
+	position:absolute;
+	background-color:#fff;
+	padding:0px;
+	margin:0px;
+	line-height:0;
+}
+.i {
+	position:absolute;
+}
+p {
+	padding:5px;
+	color:#ddd;
+}
+span.highlight {
+	color:#0af;
+	/*color:#06c;*/
+}
+</style>
+
+</head>
+
+<body onclick="stop();">
+	<p><span class="highlight">JavaScript</span> Starfield</p>
+
+<script type="text/javascript">
+
+var run = 1;
+var stars = Array();
+for(i = 0; i < 32; i++) {
+	stars[i] = new star();
+}
+drawi();
+
+</script>
+
+</body>
+
+</html>
