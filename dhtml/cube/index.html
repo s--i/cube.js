@@ -1,0 +1,151 @@
+<!DOCTYPE html PUBLIC "-//W3C//DTD XHTML 1.0 Strict//EN" "http://www.w3.org/TR/xhtml1/DTD/xhtml1-strict.dtd">
+<html xmlns="http://www.w3.org/1999/xhtml">
+
+<head>
+	<style type="text/css" media="all">
+		body{margin:0px;padding:0px;}
+		img{position:absolute;}
+	</style>
+	<script type="text/javascript">
+	/* <![CDATA[ */
+		window.onload = function() { init() };
+		function init() {
+			var cont = document.getElementById('cube');
+			var c = new jscube(cont, 32, 32, 32, 1, 3, 2);
+			//c.bench(1001);
+			c.run(50);
+		}
+		function jscube(container, size, offsetX, offsetY, rotX, rotY, rotZ) {
+			var self = this;
+			var c = container;
+			var s = size;
+			var oX = offsetX;
+			var oY = offsetY;
+			var rX = rotX;
+			var rY = rotY;
+			var rZ = rotZ;
+			var run = true;
+
+			//corners
+			var x = new Array(8);
+			var y = new Array(8);
+			var z = new Array(8);
+			x[0] = -s;	y[0] = s;	z[0] = -s;
+			x[1] = s;	y[1] = s;	z[1] = -s;
+			x[2] = s;	y[2] = -s;	z[2] = -s;
+			x[3] = -s;	y[3] = -s;	z[3] = -s;
+			x[4] = -s;	y[4] = s;	z[4] = s;
+			x[5] = s;	y[5] = s;	z[5] = s;
+			x[6] = s;	y[6] = -s;	z[6] = s;
+			x[7] = -s;	y[7] = -s;	z[7] = s;
+
+			//lines
+			var lines = new Array(12);
+			lines[0] = new Array(0,1);
+			lines[1] = new Array(1,2);
+			lines[2] = new Array(2,3);
+			lines[3] = new Array(3,0);
+			lines[4] = new Array(4,5);
+			lines[5] = new Array(5,6);
+			lines[6] = new Array(6,7);
+			lines[7] = new Array(7,4);
+			lines[8] = new Array(1,5);
+			lines[9] = new Array(2,6);
+			lines[10] = new Array(3,7);
+			lines[11] = new Array(0,4);
+
+			//2d corners
+			var tX = new Array(8);
+			var tY = new Array(8);
+
+			function draw() {
+				for(var i = 0, n = lines.length; i < n; i++) {
+					var ref = document.getElementById('l'+ i);
+					if(!ref) {
+						var img = document.createElement('img');
+						img.id = 'l' + i;
+						img.src = '';
+						c.appendChild(img);
+						ref = document.getElementById('l'+ i);
+					}
+
+					var	aX = tX[lines[i][0]],
+						aY = tY[lines[i][0]],
+						bX = tX[lines[i][1]],
+						bY = tY[lines[i][1]];
+					var	xMin		= Math.min(aX, bX),
+						yMin		= Math.min(aY, bY),
+						xMax		= Math.max(aX, bX),
+						yMax		= Math.max(aY, bY),
+						lWidth	= Math.max(xMax - xMin, 1),
+						lHeight	= Math.max(yMax - yMin, 1),
+						tmp		= Math.min(lWidth, lHeight),
+						smallEdge	= 1;
+
+					while(tmp >>= 1 && smallEdge < 256) {
+						smallEdge <<= 1;
+					}
+					var newSrc = 'lines/' + smallEdge + ((bX - aX) * (bY - aY) < 0 ? 'u.gif' : 'd.gif');
+					if(ref.src.indexOf(newSrc) == -1) {
+						ref.src = newSrc;
+					}
+					var st = ref.style;
+					st.width = lWidth + 'px';
+					st.height = lHeight + 'px';
+					st.left = oX + s + xMin + 'px';
+					st.top = oY + s + yMin + 'px';
+				}
+			}
+			function rotate() {
+				var yaw = rX * (Math.PI / 180);
+				var pitch = rY * (Math.PI / 180);
+				var roll = rZ * (Math.PI / 180);
+
+				for(var i = 0, n = x.length; i < n; i++) {
+					var x1 = z[i] * Math.sin(yaw) + x[i] * Math.cos(yaw);
+					var y1 = y[i];
+					var z1 = z[i] * Math.cos(yaw) - x[i] * Math.sin(yaw);
+
+					var x2 = x1;
+					var y2 = y1 * Math.cos(pitch) - z1 * Math.sin(pitch);
+					var z2 = y1 * Math.sin(pitch) + z1 * Math.cos(pitch);
+
+					x[i] = y2 * Math.sin(roll) + x2 * Math.cos(roll);
+					y[i] = y2 * Math.cos(roll) - x2 * Math.sin(roll);
+					z[i] = z2;
+
+					var zed = 128 / (128 + z[i]);
+					tY[i] = y[i] * zed;
+					tX[i] = x[i] * zed;
+				}
+
+				draw();
+			}
+
+			this.bench = function(frames) {
+				var fOrig = frames;
+				var time1 = new Date().getTime();
+				while(frames > 0) {
+					rotate();
+					frames--;
+				}
+				var time2 = new Date().getTime();
+				var time = time2 - time1;
+				var fps = Math.floor(fOrig / (time / 1000));
+				alert(time + 'ms @ ' + fps + 'fps');
+			}
+			this.run = function(interval) {
+				setInterval(rotate, interval);
+			}
+
+			return true;
+		}
+	/* ]]> */
+	</script>
+</head>
+
+<body>
+	<div id="cube"></div>
+</body>
+
+</html>
