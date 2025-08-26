@@ -120,8 +120,24 @@ const digits = {
 };
 
 const ledSize = 7;
-const ledGap = ledSize * 1.75;
-const ledColor = '#dd0000';
+const ledPitch = ledSize * 1.75;
+const ledColor = '#d00';
+const timeWidth = computeWidth("12:34", ledSize, ledPitch);
+const secondsWidth = computeWidth("56", ledSize * 0.75, ledPitch * 0.75);
+
+function computeWidth(timeString, ledWidth, pitch) {
+    let total = 0;
+    for (let i = 0; i < timeString.length; i++) {
+        const char = timeString[i];
+        const pattern = digits[char];
+        if (pattern) {
+            total += pattern[0].length * (ledWidth + pitch);
+        }
+    }
+    total += (timeString.length - 2) * pitch;
+
+    return total;
+}
 
 function drawDot(x, y, radius, color) {
     ctx.beginPath();
@@ -130,21 +146,8 @@ function drawDot(x, y, radius, color) {
     ctx.fill();
 }
 
-// Draw the digital time using the dot patterns
-function drawDigitalTime(timeString, yOffset, dotWidth, dotGap, color) {
-    let totalStringWidth = 0;
-    // Calculate total width of the string to center it
-    for (let i = 0; i < timeString.length; i++) {
-        const char = timeString[i];
-        if (digits[char]) {
-            const charWidth = digits[char][0].length;
-            totalStringWidth += charWidth * (dotWidth + dotGap);
-        }
-    }
-    totalStringWidth += (timeString.length - 1) * ledGap; // Add the new spacing
-    totalStringWidth -= dotGap; // Remove the trailing gap
-
-    const startX = centerX - totalStringWidth / 2;
+function drawDigitalTime(timeString, timeWidth, yOffset, dotWidth, dotGap, color) {
+    const startX = centerX - timeWidth / 2;
     let currentX = startX;
 
     for (let i = 0; i < timeString.length; i++) {
@@ -167,7 +170,7 @@ function drawDigitalTime(timeString, yOffset, dotWidth, dotGap, color) {
                 }
             }
         }
-        currentX += charWidth * (dotWidth + dotGap) + (i < timeString.length - 1 ? ledGap : 0);
+        currentX += charWidth * (dotWidth + dotGap) + (i < timeString.length - 1 ? ledPitch : 0);
     }
 }
 
@@ -181,37 +184,30 @@ function drawClock() {
     const timeString = `${hourString}:${minuteString}`;
 
     for (let i = 0; i < 12; i++) {
-        const currentAnalogRadius = height * 0.42;
-
+        const radius = height * 0.42;
         const angle = (Math.PI / 6) * i;
-        const dotX = centerX + currentAnalogRadius * Math.sin(angle);
-        const dotY = centerY - currentAnalogRadius * Math.cos(angle);
+        const x = centerX + radius * Math.sin(angle);
+        const y = centerY - radius * Math.cos(angle);
 
-        drawDot(dotX, dotY, ledSize, ledColor);
+        drawDot(x, y, ledSize, ledColor);
     }
 
-    // Draw the analog dots
-    // Loop from 0 to the current second to only draw illuminated dots
     for (let i = 0; i <= now.getSeconds(); i++) {
-        const currentAnalogRadius = height * 0.45;
-
+        const radius = height * 0.45;
         const angle = (Math.PI / 30) * i;
-        const dotX = centerX + currentAnalogRadius * Math.sin(angle);
-        const dotY = centerY - currentAnalogRadius * Math.cos(angle);
+        const x = centerX + radius * Math.sin(angle);
+        const y = centerY - radius * Math.cos(angle);
 
-        drawDot(dotX, dotY, ledSize, ledColor);
+        drawDot(x, y, ledSize, ledColor);
     }
 
-    // Adjust vertical positions for the taller digits
-    const some = (ledSize + ledGap) * (digits["0"].length - 1);
-    const digitalTimeY = centerY - some / 2;
-    const digitalSecondsY = centerY + some;
+    const timeHeight = (ledSize + ledPitch) * (digits["0"].length - 1);
+    const timeY = centerY - timeHeight / 2;
+    const secondsY = centerY + timeHeight;
 
-    // Draw the digital HH:MM
-    drawDigitalTime(timeString, digitalTimeY, ledSize, ledGap, ledColor);
-
-    // Draw the digital seconds
-    drawDigitalTime(secondString, digitalSecondsY, ledSize * 0.75, ledGap * 0.75, ledColor);
+    drawDigitalTime(timeString, timeWidth, timeY, ledSize, ledPitch, ledColor);
+    drawDigitalTime(secondString, secondsWidth, secondsY, ledSize * 0.75, ledPitch * 0.75, ledColor);
 }
 
+drawClock();
 setInterval(drawClock, 1000);
