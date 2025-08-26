@@ -1,10 +1,10 @@
 # `<canvas>` experiments
-
+Some DHTML experiments revisited with HTML5's Canvas element:
 - [Projected 3D rotating cube](https://s--i.github.io/experiments/cube)
 - [Broadcast-style LED clock](https://s--i.github.io/experiments/ledclock)
 - [`<canvas>` version of *starfield.scr*](https://s--i.github.io/experiments/starfield)
 
-# DTML
+# Dynamic HTML
 DHMTL (the combination of HTML, CSS, JavaScript and the Document Object Model (DOM)) was the way 20 years ago:
-- [Projected 3D rotating cube](https://s--i.github.io/experiments/dhtml/cube)
+- [Rotating cube](https://s--i.github.io/experiments/dhtml/cube)
 - [*starfield.scr*](https://s--i.github.io/experiments/dhtml/starfield)
