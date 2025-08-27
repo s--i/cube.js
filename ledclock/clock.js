@@ -1,23 +1,6 @@
 const canvas = document.getElementById("container");
 const ctx = canvas.getContext("2d");
 
-let width = window.innerWidth;
-let height = window.innerHeight;
-let centerX = width / 2;
-let centerY = height / 2;
-
-canvas.width = width;
-canvas.height = height;
-
-window.addEventListener("resize", () => {
-    width = window.innerWidth;
-    height = window.innerHeight;
-    canvas.width = width;
-    canvas.height = height;
-    centerX = width / 2;
-    centerY = height / 2;
-});
-
 const digits = {
     '0': [
         [0, 1, 1, 1, 0],
@@ -119,12 +102,26 @@ const digits = {
         [0, 0, 0]
     ],
 };
-
-const ledRadius = height * 0.01;
-const ledPitch = ledRadius * 2.5;
 const ledColor = '#d00';
-const timeWidth = computeWidth("12:34", ledPitch);
-const secondsWidth = computeWidth("56", ledPitch * 0.75);
+
+let width, height, centerX, centerY;
+let smallest, ledRadius, ledPitch, timeWidth, secondsWidth;
+
+function setup() {
+    width = window.innerWidth;
+    height = window.innerHeight;
+    centerX = width / 2;
+    centerY = height / 2;
+
+    canvas.width = width;
+    canvas.height = height;
+
+    smallest = Math.min(width, height);
+    ledRadius = smallest * 0.01;
+    ledPitch = ledRadius * 2.5;
+    timeWidth = computeWidth("12:34", ledPitch);
+    secondsWidth = computeWidth("56", ledPitch * 0.75);
+}
 
 function computeWidth(timeString, pitch) {
     let totalColumns = 0;
@@ -162,12 +159,7 @@ function drawDigitalTime(timeString, timeWidth, yOffset, radius, pitch, color) {
         for (let row = 0; row < charHeight; row++) {
             for (let col = 0; col < charWidth; col++) {
                 if (pattern[row][col] === 1) {
-                    drawDot(
-                        currentX + col * pitch,
-                        yOffset + row * pitch,
-                        radius,
-                        color
-                    );
+                    drawDot(currentX + col * pitch, yOffset + row * pitch, radius, color);
                 }
             }
         }
@@ -185,7 +177,7 @@ function drawClock() {
     const timeString = `${hourString}:${minuteString}`;
 
     for (let i = 0; i < 12; i++) {
-        const radius = height * 0.42;
+        const radius = smallest * 0.415;
         const angle = (Math.PI / 6) * i;
         const x = centerX + radius * Math.sin(angle);
         const y = centerY - radius * Math.cos(angle);
@@ -194,7 +186,7 @@ function drawClock() {
     }
 
     for (let i = 0; i <= now.getSeconds(); i++) {
-        const radius = height * 0.45;
+        const radius = smallest * 0.45;
         const angle = (Math.PI / 30) * i;
         const x = centerX + radius * Math.sin(angle);
         const y = centerY - radius * Math.cos(angle);
@@ -210,5 +202,8 @@ function drawClock() {
     drawDigitalTime(secondString, secondsWidth, secondsY, ledRadius * 0.75, ledPitch * 0.75, ledColor);
 }
 
+window.addEventListener("resize", setup);
+
+setup()
 drawClock();
-setInterval(drawClock, 1000);
+window.setInterval(drawClock, 1000);
