@@ -3,10 +3,11 @@ const ctx = canvas.getContext("2d");
 
 let width = window.innerWidth;
 let height = window.innerHeight;
-canvas.width = width;
-canvas.height = height;
 let centerX = width / 2;
 let centerY = height / 2;
+
+canvas.width = width;
+canvas.height = height;
 
 window.addEventListener("resize", () => {
     width = window.innerWidth;
@@ -119,24 +120,25 @@ const digits = {
     ],
 };
 
-const ledSize = 7;
-const ledPitch = ledSize * 1.75;
+const ledRadius = height * 0.01;
+const ledPitch = ledRadius * 2.5;
 const ledColor = '#d00';
-const timeWidth = computeWidth("12:34", ledSize, ledPitch);
-const secondsWidth = computeWidth("56", ledSize * 0.75, ledPitch * 0.75);
+const timeWidth = computeWidth("12:34", ledPitch);
+const secondsWidth = computeWidth("56", ledPitch * 0.75);
 
-function computeWidth(timeString, ledWidth, pitch) {
-    let total = 0;
+function computeWidth(timeString, pitch) {
+    let totalColumns = 0;
     for (let i = 0; i < timeString.length; i++) {
         const char = timeString[i];
         const pattern = digits[char];
         if (pattern) {
-            total += pattern[0].length * (ledWidth + pitch);
+            totalColumns += pattern[0].length;
         }
     }
-    total += (timeString.length - 2) * pitch;
 
-    return total;
+    let gaps = (timeString.length - 1) * pitch;
+
+    return totalColumns * pitch + gaps;
 }
 
 function drawDot(x, y, radius, color) {
@@ -146,10 +148,9 @@ function drawDot(x, y, radius, color) {
     ctx.fill();
 }
 
-function drawDigitalTime(timeString, timeWidth, yOffset, dotWidth, dotGap, color) {
+function drawDigitalTime(timeString, timeWidth, yOffset, radius, pitch, color) {
     const startX = centerX - timeWidth / 2;
-    let currentX = startX;
-
+    let currentX = startX + pitch / 2;
     for (let i = 0; i < timeString.length; i++) {
         const char = timeString[i];
         const pattern = digits[char];
@@ -162,15 +163,15 @@ function drawDigitalTime(timeString, timeWidth, yOffset, dotWidth, dotGap, color
             for (let col = 0; col < charWidth; col++) {
                 if (pattern[row][col] === 1) {
                     drawDot(
-                        currentX + col * (dotWidth + dotGap),
-                        yOffset + row * (dotWidth + dotGap),
-                        dotWidth,
+                        currentX + col * pitch,
+                        yOffset + row * pitch,
+                        radius,
                         color
                     );
                 }
             }
         }
-        currentX += charWidth * (dotWidth + dotGap) + (i < timeString.length - 1 ? ledPitch : 0);
+        currentX += charWidth * pitch + pitch;
     }
 }
 
@@ -189,7 +190,7 @@ function drawClock() {
         const x = centerX + radius * Math.sin(angle);
         const y = centerY - radius * Math.cos(angle);
 
-        drawDot(x, y, ledSize, ledColor);
+        drawDot(x, y, ledRadius, ledColor);
     }
 
     for (let i = 0; i <= now.getSeconds(); i++) {
@@ -198,15 +199,15 @@ function drawClock() {
         const x = centerX + radius * Math.sin(angle);
         const y = centerY - radius * Math.cos(angle);
 
-        drawDot(x, y, ledSize, ledColor);
+        drawDot(x, y, ledRadius, ledColor);
     }
 
-    const timeHeight = (ledSize + ledPitch) * (digits["0"].length - 1);
-    const timeY = centerY - timeHeight / 2;
+    const timeHeight = ledPitch * digits["0"].length;
+    const timeY = centerY - timeHeight / 2 + ledPitch / 2;
     const secondsY = centerY + timeHeight;
 
-    drawDigitalTime(timeString, timeWidth, timeY, ledSize, ledPitch, ledColor);
-    drawDigitalTime(secondString, secondsWidth, secondsY, ledSize * 0.75, ledPitch * 0.75, ledColor);
+    drawDigitalTime(timeString, timeWidth, timeY, ledRadius, ledPitch, ledColor);
+    drawDigitalTime(secondString, secondsWidth, secondsY, ledRadius * 0.75, ledPitch * 0.75, ledColor);
 }
 
 drawClock();
