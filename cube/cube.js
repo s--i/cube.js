@@ -28,14 +28,14 @@ const edges = [
     [3, 7]
 ];
 const vertices = [
-    [-1, -1, -1],
-    [1, -1, -1],
-    [1, 1, -1],
-    [-1, 1, -1],
-    [-1, -1, 1],
-    [1, -1, 1],
-    [1, 1, 1],
-    [-1, 1, 1]
+    {x: -1, y: -1, z: -1},
+    {x: 1, y: -1, z: -1},
+    {x: 1, y: 1, z: -1},
+    {x: -1, y: 1, z: -1},
+    {x: -1, y: -1, z: 1},
+    {x: 1, y: -1, z: 1},
+    {x: 1, y: 1, z: 1},
+    {x: -1, y: 1, z: 1}
 ];
 
 const size = 64;
@@ -44,8 +44,8 @@ const lineWidth = 4;
 const speed = 0.4;
 
 const degreesToRadians = Math.PI / 180;
-const projectedVertices = vertices.map(() => [0, 0]);
-const scaledVertices = vertices.map(v => v.map(c => c * size));
+const projectedVertices = vertices.map(() => ({x: 0, y: 0}));
+const scaledVertices = vertices.map(v => ({ x: v.x * size, y: v.y * size, z: v.z * size }));
 
 function rotate() {
     const roll = 1 * degreesToRadians * speed;
@@ -60,25 +60,27 @@ function rotate() {
     const cosYaw = Math.cos(yaw);
 
     for (let i = 0; i < scaledVertices.length; i++) {
-        const [x, y, z] = scaledVertices[i];
+        const v = scaledVertices[i];
 
         // Pitch (X-axis)
-        let rY = y * cosPitch - z * sinPitch;
-        let rZ = y * sinPitch + z * cosPitch;
+        let rY = v.y * cosPitch - v.z * sinPitch;
+        let rZ = v.y * sinPitch + v.z * cosPitch;
 
         // Yaw (Y-axis)
-        let rX = rZ * sinYaw + x * cosYaw;
-        rZ = rZ * cosYaw - x * sinYaw;
+        let rX = rZ * sinYaw + v.x * cosYaw;
+        rZ = rZ * cosYaw - v.x * sinYaw;
 
         // Roll (Z-axis)
         const prevX = rX;
         rX = rY * sinRoll + prevX * cosRoll;
         rY = rY * cosRoll - prevX * sinRoll;
 
-        scaledVertices[i] = [rX, rY, rZ];
+        [v.x, v.y, v.z] = [rX, rY, rZ];
 
+        const pV = projectedVertices[i];
         const scale = distance / (distance + rZ);
-        projectedVertices[i] = [rX * scale, rY * scale];
+
+        [pV.x, pV.y] = [rX * scale, rY * scale];
     }
 
     const centerX = canvas.width / 2;
@@ -90,11 +92,11 @@ function rotate() {
 
     ctx.beginPath();
     for (const [startVertex, endVertex] of edges) {
-        const [startX, startY] = projectedVertices[startVertex];
-        const [endX, endY] = projectedVertices[endVertex];
+        const start = projectedVertices[startVertex];
+        const end = projectedVertices[endVertex];
 
-        ctx.moveTo(startX + centerX, startY + centerY);
-        ctx.lineTo(endX + centerX, endY + centerY);
+        ctx.moveTo(start.x + centerX, start.y + centerY);
+        ctx.lineTo(end.x + centerX, end.y + centerY);
     }
     ctx.stroke();
 
