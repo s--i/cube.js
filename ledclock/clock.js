@@ -103,6 +103,7 @@ const digits = {
     ],
 };
 const ledColor = '#d00';
+const secondSize = 0.75;
 
 let width, height, centerX, centerY;
 let smallest, ledRadius, ledPitch, timeWidth, secondsWidth;
@@ -120,7 +121,7 @@ function setup() {
     ledRadius = smallest * 0.01;
     ledPitch = ledRadius * 2.5;
     timeWidth = computeWidth("12:34", ledPitch);
-    secondsWidth = computeWidth("56", ledPitch * 0.75);
+    secondsWidth = computeWidth("56", ledPitch * secondSize);
 }
 
 function computeWidth(timeString, pitch) {
@@ -199,11 +200,12 @@ function drawClock() {
     const secondsY = centerY + timeHeight;
 
     drawDigitalTime(timeString, timeWidth, timeY, ledRadius, ledPitch, ledColor);
-    drawDigitalTime(secondString, secondsWidth, secondsY, ledRadius * 0.75, ledPitch * 0.75, ledColor);
+    drawDigitalTime(secondString, secondsWidth, secondsY, ledRadius * secondSize, ledPitch * secondSize, ledColor);
+
+    window.setTimeout(drawClock, 1000 - now.getMilliseconds());
 }
 
 window.addEventListener("resize", setup);
 
-setup()
+setup();
 drawClock();
-window.setInterval(drawClock, 1000);
